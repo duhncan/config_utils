@@ -1,0 +1,49 @@
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YAML Editor</title>
+    <script type="text/javascript" src="{% static 'editor/ace.js' %}"></script>
+    <style>
+        #editor { height: 400px; width: 100%; }
+    </style>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+</head>
+<body>
+    <h1>YAML Live Editor</h1>
+    <div id="editor"></div>
+    <button onclick="validateYAML()">Validate YAML</button>
+    <div id="validation-results"></div>
+
+    <script type="text/javascript">
+        var editor = ace.edit("editor");
+        editor.setTheme("ace/theme/monokai");
+        editor.session.setMode("ace/mode/yaml");
+
+        function getCSRFToken() {
+            return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        }
+
+        function validateYAML() {
+            const yamlContent = editor.getValue();
+            fetch('/validate-yaml/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()                },
+                body: JSON.stringify({ yaml: yamlContent })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById('validation-results');
+                resultDiv.innerHTML = data.is_valid ? 'YAML is valid' : 'YAML is invalid: ' + data.errors;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
+

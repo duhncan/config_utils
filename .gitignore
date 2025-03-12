@@ -1,0 +1,10 @@
+# Ignore Python bytecode files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore virtual environment directory (venv)
+venv/
+
+# Ignore SQLite database files
+*.sqlite3

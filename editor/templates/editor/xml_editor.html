@@ -1,0 +1,50 @@
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XML Editor</title>
+    <script type="text/javascript" src="{% static 'editor/ace.js' %}"></script>
+    <style>
+        #editor { height: 400px; width: 100%; }
+    </style>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+</head>
+<body>
+    <h1>XML Live Editor</h1>
+    <div id="editor"></div>
+    <button onclick="validateXML()">Validate XML</button>
+    <div id="validation-results"></div>
+
+    <script type="text/javascript">
+        var editor = ace.edit("editor");
+        editor.setTheme("ace/theme/monokai");
+        editor.session.setMode("ace/mode/xml");
+
+        function getCSRFToken() {
+            return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        }
+
+        function validateXML() {
+            const xmlContent = editor.getValue();
+            fetch('/validate-xml/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({ xml: xmlContent })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById('validation-results');
+                resultDiv.innerHTML = data.is_valid ? 'XML is valid' : 'XML is invalid: ' + data.errors;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
+
